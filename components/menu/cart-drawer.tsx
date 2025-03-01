@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Minus, X } from "lucide-react";
@@ -141,20 +141,15 @@ export function CartDrawer({ cart, items, onAdd, onRemove, isAuthenticated = fal
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Button 
-                  variant="outline"
-                  size="lg"
-                  className="w-full"
-                  onClick={() => {
-                    const sheet = document.querySelector('[data-state="open"]');
-                    if (sheet) {
-                      const closeButton = sheet.querySelector('button[data-state="closed"]') as HTMLButtonElement;
-                      closeButton?.click();
-                    }
-                  }}
-                >
-                  Continue Shopping
-                </Button>
+                <SheetClose asChild>
+                  <Button 
+                    variant="outline"
+                    size="lg"
+                    className="w-full"
+                  >
+                    Continue Shopping
+                  </Button>
+                </SheetClose>
                 <Button 
                   className="w-full bg-gradient-to-r from-[#BF9B30] to-[#DFBD69] text-white hover:shadow-lg 
                   transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"

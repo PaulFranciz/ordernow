@@ -7,6 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FcGoogle } from 'react-icons/fc';
 import { Mail, User, ArrowRight } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import Image from 'next/image';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -22,11 +25,38 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [otp, setOTP] = useState('');
   const [error, setError] = useState('');
   const { toast } = useToast();
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    // TODO: Implement Google Sign In
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      const returnTo = searchParams.get('returnTo') || '/';
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          redirectTo: `${window.location.origin}/auth/callback?returnTo=${returnTo}`
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to sign in with Google'
+      });
+      setIsLoading(false);
+    }
   };
 
   const handleSendOTP = async (e: React.FormEvent) => {
@@ -110,12 +140,14 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-full"
+            className="w-full flex justify-center"
           >
-            <img 
+            <Image 
               src="/auth-illustration.svg" 
               alt="Authentication" 
-              className="w-64 h-64 mx-auto"
+              width={240}
+              height={240}
+              priority
             />
           </motion.div>
 

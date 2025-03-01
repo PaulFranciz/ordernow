@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
     // Send OTP via email
     const { error: emailError } = await resend.emails.send({
-      from: 'OrderNow <noreply@ordernow.com>',
+      from: 'OrderNow <onboarding@resend.dev>',
       to: email,
       subject: `Your verification code for ${isSignUp ? 'signing up' : 'signing in'}`,
       html: `
