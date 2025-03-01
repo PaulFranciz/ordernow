@@ -1,6 +1,7 @@
 export interface DeliveryZone {
-  id: number;
-  branch_id: number;
+  id: string;
+  name: string;
+  branch_id: string;
   location: string;
   vehicle_type: string;
   daytime_fee: number;

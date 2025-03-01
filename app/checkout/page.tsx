@@ -9,13 +9,7 @@ import { CartSummary } from '@/components/checkout/CartSummary';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { toast } from 'react-hot-toast';
-
-interface DeliveryZone {
-  id: string;
-  name: string;
-  daytime_fee: number;
-  // Add other properties your DeliveryZone has
-}
+import { DeliveryZone } from '@/types/checkout';
 
 export default function CheckoutPage() {
   const { cart, total } = useCart();
@@ -40,7 +34,9 @@ export default function CheckoutPage() {
           return;
         }
         
-        setUser({ email: session.user.email || '' });
+        if (session.user.email) {
+          setUser({ email: session.user.email });
+        }
         setIsLoading(false);
       } catch (error) {
         console.error('Auth check error:', error);
@@ -118,7 +114,7 @@ export default function CheckoutPage() {
                   <CartSummary cart={cart} deliveryZone={selectedZone} />
                   <PaystackButton 
                     amount={total + (selectedZone?.daytime_fee || 0)} 
-                    email={user?.email}
+                    email={user?.email || ''}
                     deliveryZone={selectedZone}
                   />
                 </motion.div>

@@ -39,3 +39,6 @@ next-env.d.ts
 # IDE
 .vscode/
 .idea/
+
+# Ignore Supabase tsconfig error
+node_modules/@supabase/auth-helpers-nextjs/tsconfig.json

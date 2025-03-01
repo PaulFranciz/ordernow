@@ -34,7 +34,7 @@ export function CartSummary({ cart, deliveryZone }: CartSummaryProps) {
             whileHover={{ x: 5 }}
             className="flex justify-between"
           >
-            <span>{item.quantity}x {item.name}</span>
+            <span>{item.name} x {item.quantity}</span>
             <span>₦{item.price * item.quantity}</span>
           </motion.div>
         ))}
