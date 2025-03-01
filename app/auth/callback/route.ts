@@ -5,33 +5,29 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  try {
-    const requestUrl = new URL(request.url);
-    const code = requestUrl.searchParams.get('code');
-    const error = requestUrl.searchParams.get('error');
-    const error_description = requestUrl.searchParams.get('error_description');
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
 
-    if (error || !code) {
-      throw new Error(error_description || 'No code provided');
+  if (code) {
+    const supabase = createRouteHandlerClient({ cookies });
+    
+    try {
+      await supabase.auth.exchangeCodeForSession(code);
+      
+      // Get the stored redirect path or default to '/'
+      const redirectPath = requestUrl.searchParams.get('redirectPath') || '/checkout';
+      
+      return NextResponse.redirect(new URL(redirectPath, requestUrl.origin));
+    } catch (error) {
+      console.error('Auth callback error:', error);
+      return NextResponse.redirect(
+        new URL('/auth/signin?error=Authentication%20failed', requestUrl.origin)
+      );
     }
-
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
-
-    const { error: supabaseError } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (supabaseError) {
-      throw supabaseError;
-    }
-
-    // Get the return URL if it exists
-    const returnTo = requestUrl.searchParams.get('returnTo') || '/';
-    return NextResponse.redirect(`${requestUrl.origin}${returnTo}`);
-
-  } catch (error) {
-    console.error('Auth callback error:', error);
-    const errorUrl = new URL('/auth/error', request.url);
-    errorUrl.searchParams.set('error', error instanceof Error ? error.message : 'Unknown error');
-    return NextResponse.redirect(errorUrl);
   }
-} 
+
+  // If no code, redirect to signin with error
+  return NextResponse.redirect(
+    new URL('/auth/signin?error=No%20code%20provided', requestUrl.origin)
+  );
+}
