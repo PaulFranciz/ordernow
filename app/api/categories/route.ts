@@ -30,8 +30,8 @@ export async function GET() {
   try {
     console.log('Request details:', {
       method: 'GET',
-      url: headers().get('x-url'),
-      pathname: headers().get('x-pathname')
+      url: (await headers()).get('x-url'),
+      pathname: (await headers()).get('x-pathname')
     });
 
     // Check environment variables

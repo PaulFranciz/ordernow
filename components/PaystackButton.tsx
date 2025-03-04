@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import type { DeliveryZone } from '@/types/checkout';
+import Image from 'next/image';
 
 interface PaystackButtonProps {
   amount: number;
@@ -67,12 +68,28 @@ export function PaystackButton({ amount, email, deliveryZone }: PaystackButtonPr
     handler.openIframe();
   };
 
+  const formatPrice = (price: number) => {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   return (
-    <button 
-      onClick={handlePayment}
-      className="w-full bg-green-500 text-white py-4 px-8 rounded-lg font-semibold shadow-lg hover:bg-green-600 transition-colors"
-    >
-      Pay ₦{amount}
-    </button>
+    <div className="w-full flex flex-col items-center">
+      <button 
+        onClick={handlePayment}
+        className="w-full bg-green-500 text-white py-4 px-8 rounded-lg font-semibold shadow-lg hover:bg-green-600 transition-colors"
+      >
+        Pay ₦{formatPrice(amount)}
+      </button>
+      <div className="mt-3 flex items-center text-sm text-gray-600">
+        <span>Secured by</span>
+        <Image
+          src="/logo/Paystack_idSL4BuSLF_1.png"
+          alt="Paystack Logo"
+          width={80}
+          height={20}
+          className="ml-1"
+        />
+      </div>
+    </div>
   );
 } 

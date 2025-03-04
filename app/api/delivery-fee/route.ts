@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase, calculateDeliveryFee } from '@/lib/supabase/client';
+import { calculateDeliveryFee } from '@/lib/supabase/client';
 import { VehicleType } from '../types';
 
 export async function GET(request: Request) {

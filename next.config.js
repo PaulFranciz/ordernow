@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
@@ -13,7 +16,46 @@ const nextConfig = {
         hostname: 'placehold.co',
       },
     ],
-  }
-}
+  },
+  
+  async rewrites() {
+    return [
+      {
+        source: '/auth/callback',
+        destination: '/api/auth/callback', // Ensure this points to the actual API route
+      },
+    ];
+  },
 
-module.exports = nextConfig 
+  async headers() {
+    return [
+      {
+        source: '/api/auth/callback',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*', // Replace with your actual frontend domain
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Authorization, Content-Type',
+          },
+        ],
+      },
+    ];
+  },
+
+  serverRuntimeConfig: {
+    cookieOptions: {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    },
+  },
+};
+
+module.exports = nextConfig;

@@ -4,7 +4,7 @@ import React, { useState, useCallback, useTransition, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Grid, List, ShoppingCart } from "lucide-react";
+import { Search, Grid, List } from "lucide-react";
 import debounce from 'lodash/debounce';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { CartDrawer } from "@/components/menu/cart-drawer";
 import { Breadcrumb } from "@/components/menu/breadcrumb";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import axios from "axios";
+import { useCart } from '@/hooks/useCart';
 
 interface MenuResponse {
   menuItems: MenuItem[];
@@ -132,26 +133,29 @@ export default function MenuPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isPending, startTransition] = useTransition();
   const [isGridView, setIsGridView] = useState(true);
-  const [cart, setCart] = useState<{[key: string]: number}>({});
   const [allItems, setAllItems] = useState<MenuItem[]>([]);
+  
+  // Use the cart from Zustand store
+  const { cart, cartMap, isOpen } = useCart();
 
   // Fetch categories
-  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery<Category[]>({
+  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery<Category[], Error>({    
     queryKey: ['categories'],
     queryFn: fetchCategories,
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    onError: (error) => {
-      console.error('Categories query error:', error);
-    },
-    onSuccess: (data) => {
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
+  });
+
+  // Log when categories are loaded successfully
+  useEffect(() => {
+    if (categories && categories.length > 0) {
       console.log('Categories loaded successfully:', {
-        count: data.length,
-        sample: data.slice(0, 2)
+        count: categories.length,
+        sample: categories.slice(0, 2)
       });
     }
-  });
+  }, [categories]);
 
   // Fetch menu items
   const { 
@@ -178,19 +182,6 @@ export default function MenuPage() {
     queryFn: () => fetchMenuItems({ popular: true }),
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
   });
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem('orderNowCart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
-  }, []);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('orderNowCart', JSON.stringify(cart));
-  }, [cart]);
 
   // Update allItems when menu items change
   useEffect(() => {
@@ -251,36 +242,15 @@ export default function MenuPage() {
     setCurrentPage(page);
   };
 
-  const handleAddToCart = (itemId: string) => {
-    setCart(prev => ({
-      ...prev,
-      [itemId]: (prev[itemId] || 0) + 1
-    }));
-  };
-
-  const handleRemoveFromCart = (itemId: string) => {
-    setCart(prev => {
-      const newCart = { ...prev };
-      if (newCart[itemId] > 1) {
-        newCart[itemId]--;
-      } else {
-        delete newCart[itemId];
-      }
-      return newCart;
-    });
-  };
-
-  const cartTotal = allItems.reduce((total, item) => {
-    const quantity = cart[item.id] || 0;
-    return total + (item.price * quantity);
-  }, 0);
+  // Check if cart has items
+  const hasItems = cart.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
       <div className="container mx-auto px-4 py-8 relative">
         <Breadcrumb 
           orderType={orderType} 
-          category={categories?.find((c: Category) => c.id === selectedCategory)?.name}
+          category={categories.find((c: Category) => c.id === selectedCategory)?.name}
         />
         
         {/* Search and View Toggle */}
@@ -380,9 +350,6 @@ export default function MenuPage() {
                   <MenuItemCard
                     key={item.id}
                     item={{ ...item, is_available: true }}
-                    quantity={cart[item.id] || 0}
-                    onAdd={() => handleAddToCart(item.id)}
-                    onRemove={() => handleRemoveFromCart(item.id)}
                     isGridView={isGridView}
                     className="transform transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"
                   />
@@ -398,7 +365,7 @@ export default function MenuPage() {
             {searchQuery
               ? `Search Results for "${searchQuery}"`
               : selectedCategory
-              ? `${categories?.find((c: Category) => c.id === selectedCategory)?.name || ''} Menu`
+              ? `${categories.find((c: Category) => c.id === selectedCategory)?.name || ''} Menu`
               : "All Items"}
           </h2>
           {menuItemsError ? (
@@ -416,9 +383,6 @@ export default function MenuPage() {
                   <MenuItemCard
                     key={item.id}
                     item={{ ...item, is_available: true }}
-                    quantity={cart[item.id] || 0}
-                    onAdd={() => handleAddToCart(item.id)}
-                    onRemove={() => handleRemoveFromCart(item.id)}
                     isGridView={isGridView}
                     className="transform transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"
                   />
@@ -447,20 +411,9 @@ export default function MenuPage() {
           ) : null}
         </div>
 
-        {/* Cart Summary */}
-        {Object.keys(cart).length > 0 && allItems.length > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg backdrop-blur-md bg-white/90">
-            <div className="container mx-auto">
-              <CartDrawer
-                cart={cart}
-                items={allItems}
-                onAdd={handleAddToCart}
-                onRemove={handleRemoveFromCart}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+        {/* Cart Summary - Uses the CartDrawer component directly */}
+        {hasItems && <CartDrawer />}
+      </div> 
     </div>
   );
 }

@@ -31,6 +31,7 @@ export interface Category {
 }
 
 export interface MenuItem {
+  image: string;
   id: string;
   name: string;
   category_id: string;
