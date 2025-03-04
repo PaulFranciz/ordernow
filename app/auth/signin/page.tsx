@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from "react";
 import { useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { SignInWithGoogle } from '@/components/auth/SignInWithGoogle';
 
-export default function SignIn() {
+const SignInContent = () => {
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/checkout';
 
@@ -18,5 +19,13 @@ export default function SignIn() {
         <SignInWithGoogle />
       </div>
     </div>
+  );
+};
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   );
 } 
