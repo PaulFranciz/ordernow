@@ -107,3 +107,11 @@ export interface CreateReservationRequest {
   number_of_guests: number;
   special_requests?: string;
 }
+
+export interface Location {
+  description: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+}

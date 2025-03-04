@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { MainNav } from "@/global/layout/Main-Nav";
 import { FlipWords } from "../ui/flip-words";
 import { CloudinaryImage } from "../ui/cloudinary-image";
 import { Button } from "../ui/button";
@@ -60,6 +61,8 @@ export function Hero() {
 
   return (
     <div className="min-h-screen w-full bg-black relative overflow-hidden">
+      <MainNav />
+
       {/* Background elements */}
       <div className="absolute inset-0 bg-grid-white/[0.2]">
         <div className="absolute inset-0 bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
