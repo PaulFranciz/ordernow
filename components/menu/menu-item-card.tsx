@@ -2,16 +2,18 @@ import React from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/useCart';
+import { MenuItem as ApiMenuItem } from '@/app/api/types';
 
+// Use a local interface that matches what we're actually using
 interface MenuItem {
   id: string;
   name: string;
   description?: string;
   price: number;
   image_url?: string;
+  image: string; // Add this to match the API type
   is_available: boolean;
-  category_id?: string;
-  category_name?: string;
+  category_id: string;
 }
 
 interface MenuItemCardProps {
@@ -28,7 +30,12 @@ export function MenuItemCard({ item, isGridView = true, className = '' }: MenuIt
   const quantity = cartItem ? cartItem.quantity : 0;
 
   const handleAddToCart = () => {
-    addItem(item);
+    // Ensure the item has all required properties before adding to cart
+    const menuItem: ApiMenuItem = {
+      ...item,
+      image: item.image || item.image_url || '', // Ensure image is set
+    };
+    addItem(menuItem);
   };
 
   const handleRemoveFromCart = () => {

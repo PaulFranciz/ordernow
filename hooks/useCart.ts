@@ -1,3 +1,4 @@
+import { MenuItem } from '@/app/api/types';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -9,6 +10,10 @@ export interface CartItem {
   quantity: number;
   description?: string;
   image_url?: string;
+  image: string; // Added to match the required property in CartItem
+  // Add these to make CartItem compatible with MenuItem when needed
+  category_id: string;
+  is_available: boolean;
 }
 
 interface CartStore {
@@ -49,7 +54,10 @@ export const useCartStore = create<CartStore>()(
               price: item.price || 0,
               quantity: 1,
               description: item.description,
-              image_url: item.image_url
+              image_url: item.image_url,
+              image: item.image || item.image_url || '', // Use image or fallback to image_url
+              category_id: item.category_id,
+              is_available: item.is_available
             }];
           }
           

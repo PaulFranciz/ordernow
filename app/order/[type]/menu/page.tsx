@@ -136,7 +136,7 @@ export default function MenuPage() {
   const [allItems, setAllItems] = useState<MenuItem[]>([]);
   
   // Use the cart from Zustand store
-  const { cart, cartMap, isOpen } = useCart();
+  const { cart, cartMap } = useCart();
 
   // Fetch categories
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery<Category[], Error>({    
