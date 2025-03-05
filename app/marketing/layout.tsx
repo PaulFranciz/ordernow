@@ -1,4 +1,4 @@
-import '../globals.css';
+import '@/app/globals.css';  // Use absolute import path
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
@@ -15,8 +15,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="marketing-layout">
-    {children}
-  </div>
+    <html lang="en">
+      <body className={inter.className}>
+        <div className="marketing-layout">
+          {children}
+        </div>
+      </body>
+    </html>
   );
 }
