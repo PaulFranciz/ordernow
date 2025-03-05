@@ -1,32 +1,14 @@
 [build]
-  command = "pnpm run build"
-  publish = ".next"
+command = "pnpm run build"
+publish = ".next"
 
 [build.environment]
-  NEXT_TELEMETRY_DISABLED = "1"
-  NODE_VERSION = "18"
-  NEXT_PUBLIC_SITE_URL = "https://hogis-ordernow.netlify.app"
+NEXT_TELEMETRY_DISABLED = "1"
+NODE_VERSION = "18"
+NEXT_PUBLIC_SITE_URL = "https://hogis-ordernow.netlify.app"
 
 [[plugins]]
-  package = "@netlify/plugin-nextjs"
+package = "@netlify/plugin-nextjs"
 
 [functions]
-  node_bundler = "esbuild"
-
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/___netlify-server-handler"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/_next/static/*"
-  to = "/_next/static/:splat"
-  status = 200
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-    Access-Control-Allow-Headers = "Authorization, Content-Type"
+node_bundler = "esbuild"
