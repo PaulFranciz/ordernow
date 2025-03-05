@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  
+  output: 'standalone',
   eslint: {
     ignoreDuringBuilds: true
   },
@@ -19,44 +19,13 @@ const nextConfig = {
       },
     ],
   },
-  
   async rewrites() {
     return [
       {
         source: '/auth/callback',
-        destination: '/api/auth/callback', // Ensure this points to the actual API route
+        destination: '/api/auth/callback',
       },
     ];
-  },
-
-  async headers() {
-    return [
-      {
-        source: '/api/auth/callback',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*', // Replace with your actual frontend domain
-          },
-          {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, OPTIONS',
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Authorization, Content-Type',
-          },
-        ],
-      },
-    ];
-  },
-
-  serverRuntimeConfig: {
-    cookieOptions: {
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-    },
   },
 };
 
