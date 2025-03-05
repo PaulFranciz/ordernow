@@ -9,8 +9,6 @@ NEXT_PUBLIC_SITE_URL = "https://hogis-ordernow.netlify.app"
 
 [[plugins]]
 package = "@netlify/plugin-nextjs"
-[plugins.inputs]
-skipBuildCache = true
 
 [functions]
 node_bundler = "esbuild"

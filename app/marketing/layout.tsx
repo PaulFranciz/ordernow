@@ -9,18 +9,14 @@ export const metadata: Metadata = {
   description: 'Food delivery and more',
 };
 
-export default function RootLayout({
+export default function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="marketing-layout">
-          {children}
-        </div>
-      </body>
-    </html>
+    <div className="marketing-layout">
+      {children}
+    </div>
   );
 }
