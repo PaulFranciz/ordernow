@@ -37,7 +37,6 @@ export function CloudinaryImage({ src, alt, width, height, className, onError, p
         height={height}
         className={className}
         priority={priority}
-        unoptimized // Skip optimization for placeholder service
       />
     );
   }
@@ -51,8 +50,6 @@ export function CloudinaryImage({ src, alt, width, height, className, onError, p
         width={width}
         height={height}
         className={className}
-        loading={priority ? 'eager' : 'lazy'}
-        quality={90}
         priority={priority}
         onError={() => {
           setImgError(true);

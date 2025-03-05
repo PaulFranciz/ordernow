@@ -11,3 +11,7 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["!node_modules/@next/swc-*/**, !node_modules/next/dist/compiled/**, node_modules/next/dist/server/**, node_modules/next/dist/shared/**"]
