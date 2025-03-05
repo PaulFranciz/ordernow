@@ -1,21 +1,26 @@
-import type { Metadata } from "next";
-import "@/app/globals.css";
-import { MainNav } from "@/global/layout/Main-Nav";
+import './globals.css';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Order Now",
-  description: "Food delivery and more",
+  title: 'Order Now',
+  description: 'Food delivery and more',
 };
 
-export default function MarketingLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <MainNav />
-      {children}
-    </div>
+    <html lang="en">
+      <body className={inter.className}>
+        <div className="min-h-screen flex flex-col">
+          {children}
+        </div>
+      </body>
+    </html>
   );
 }
