@@ -4,8 +4,7 @@
 
 # Environment variables
 [build.environment]
-  NEXT_USE_NETLIFY_EDGE = "true"
-  NEXT_FORCE_EDGE_IMAGES = "true"
+  NEXT_TELEMETRY_DISABLED = "1"
   NODE_VERSION = "18"
   NEXT_PUBLIC_SITE_URL = "https://hogis-ordernow.netlify.app"
 
@@ -14,4 +13,20 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["!node_modules/@next/swc-*/**, !node_modules/next/dist/compiled/**, node_modules/next/dist/server/**, node_modules/next/dist/shared/**"]
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/___netlify-server-handler"
+  status = 200
+
+[[redirects]]
+  from = "/_next/static/*"
+  to = "/_next/static/:splat"
+  status = 200
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Authorization, Content-Type"
