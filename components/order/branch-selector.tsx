@@ -20,18 +20,60 @@ export function BranchSelector({ orderType }: BranchSelectorProps) {
     fetchBranches();
   }, [fetchBranches]);
 
-  const getBranchStatus = (openingTime: string, closingTime: string): 'open' | 'closed' => {
+  const getBranchStatus = (branch: Branch, orderType: string): 'open' | 'closed' => {
     const now = new Date();
-    const currentTime = now.toLocaleTimeString('en-US', { hour12: false });
-    return currentTime >= openingTime && currentTime <= closingTime ? 'open' : 'closed';
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+    
+    // For dine-in and pick-up, available 24/7
+    if (orderType === 'dine-in' || orderType === 'pick-up') {
+      return 'open';
+    }
+    
+    // For delivery, available from 8am to 9pm (8:00 - 21:00)
+    if (orderType === 'delivery') {
+      const openingHour = 8; // 8am
+      const closingHour = 21; // 9pm
+      
+      const openingTimeInMinutes = openingHour * 60;
+      const closingTimeInMinutes = closingHour * 60;
+      
+      return (currentTimeInMinutes >= openingTimeInMinutes && currentTimeInMinutes < closingTimeInMinutes) 
+        ? 'open' 
+        : 'closed';
+    }
+    
+    // Fallback to the original time check logic for any other order types
+    const [openingHour, openingMinute] = branch.opening_time.split(':').map(Number);
+    const [closingHour, closingMinute] = branch.closing_time.split(':').map(Number);
+    
+    const openingTimeInMinutes = openingHour * 60 + openingMinute;
+    const closingTimeInMinutes = closingHour * 60 + closingMinute;
+    
+    return (currentTimeInMinutes >= openingTimeInMinutes && currentTimeInMinutes < closingTimeInMinutes) 
+      ? 'open' 
+      : 'closed';
+  };
+
+  const getDisplayTime = (orderType: string): string => {
+    if (orderType === 'dine-in' || orderType === 'pick-up') {
+      return "Open 24 hours";
+    } else if (orderType === 'delivery') {
+      return "08:00 - 21:00";
+    } else {
+      // Fallback to original branch hours
+      return "";
+    }
   };
 
   const branchesWithStatus = useMemo(() => {
     return branches.map(branch => ({
       ...branch,
-      status: getBranchStatus(branch.opening_time, branch.closing_time)
+      status: getBranchStatus(branch, orderType),
+      displayTime: getDisplayTime(orderType) || `${branch.opening_time} - ${branch.closing_time}`
     }));
-  }, [branches]);
+  }, [branches, orderType]);
 
   const handleContinue = () => {
     if (selectedBranchId) {
@@ -108,7 +150,7 @@ export function BranchSelector({ orderType }: BranchSelectorProps) {
                   {branch.distance && (
                     <span className="text-neutral-500">{branch.distance}</span>
                   )}
-                  <span className="text-neutral-500">{branch.opening_time} - {branch.closing_time}</span>
+                  <span className="text-neutral-500">{branch.displayTime}</span>
                 </div>
               </div>
             </div>
