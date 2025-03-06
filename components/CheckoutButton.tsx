@@ -9,7 +9,7 @@ export function CheckoutButton() {
   const handleCheckout = () => {
     // Set the returnTo cookie directly before navigation
     document.cookie = `returnTo=/checkout;path=/;max-age=300`;
-    router.push('/checkout');
+    router.push('/order/time-selection');
   };
 
   return (

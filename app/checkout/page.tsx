@@ -11,16 +11,36 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { toast } from 'react-hot-toast';
 import { DeliveryZone } from '@/types/checkout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTimeSelectionStore } from '@/app/store/useTimeSelectionStore';
+import { Calendar } from "@/components/ui/calendar";
 
 export default function CheckoutPage() {
   const { total } = useCart(); // Remove cart as we don't need to pass it to CartSummary
+  const timeSelectionStore = useTimeSelectionStore(); // Access the Zustand store
+  const orderType = timeSelectionStore.orderType; // Get the order type from Zustand
+  const router = useRouter();
   const [selectedZone, setSelectedZone] = useState<DeliveryZone | null>(null);
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<{ email: string } | null>(null);
   const [vehicleType, setVehicleType] = useState<'motorbike' | 'bicycle'>('motorbike');
-  const router = useRouter();
   const supabase = createClientComponentClient();
+
+  // Check if the order type is set
+  useEffect(() => {
+    const redirectIfOrderTypeNotSet = () => {
+      console.log('Current order type:', orderType); // Debugging log
+      if (!orderType) {
+        console.log('Order type is not set, redirecting to home');
+        router.push('/'); // Redirect to home or order type selection if orderType is not set
+      }
+    };
+
+    // Delay the redirect check
+    const timeoutId = setTimeout(redirectIfOrderTypeNotSet, 100); // Check after 100ms
+
+    return () => clearTimeout(timeoutId); // Cleanup timeout on unmount
+  }, [orderType, router]);
 
   // Reset selected zone when vehicle type changes
   useEffect(() => {
@@ -152,14 +172,27 @@ export default function CheckoutPage() {
                   className="mt-6"
                 >
                   <h2 className="text-lg font-medium mb-4">Choose Delivery Location</h2>
-                  <DeliveryZoneSelector 
-                    onSelect={(zone) => {
-                      setSelectedZone(zone);
-                      setStep(2);
-                    }}
-                    branchIds={['b1000000-0000-0000-0000-000000000001', 'b2000000-0000-0000-0000-000000000002', 'b3000000-0000-0000-0000-000000000003']}
-                    vehicleType={vehicleType}
-                  />
+                  {orderType === 'delivery' ? (
+                    <DeliveryZoneSelector 
+                      onSelect={(zone) => {
+                        setSelectedZone(zone);
+                        setStep(2);
+                      }}
+                      branchIds={['b1000000-0000-0000-0000-000000000001', 'b2000000-0000-0000-0000-000000000002', 'b3000000-0000-0000-0000-000000000003']}
+                      vehicleType={vehicleType}
+                    />
+                  ) : (
+                    <div>
+                      <h2 className="text-lg font-medium mb-4">Select Delivery Time</h2>
+                      <Calendar
+                        mode="single"
+                        selected={new Date()} // Set the default date
+                        onSelect={(date) => timeSelectionStore.setSelectedDate(date || null)}
+                        className="rounded-md border"
+                      />
+                      {/* Add time selection logic here if needed */}
+                    </div>
+                  )}
                 </motion.div>
               )}
 

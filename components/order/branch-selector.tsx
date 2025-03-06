@@ -34,7 +34,9 @@ export function BranchSelector({ orderType }: BranchSelectorProps) {
   }, [branches]);
 
   const handleContinue = () => {
-    router.push(`/order/${orderType}/menu`);
+    if (selectedBranchId) {
+      router.push(`/order/${orderType}/menu`);
+    }
   };
 
   if (isLoading) {

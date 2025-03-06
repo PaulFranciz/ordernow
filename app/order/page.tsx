@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { UtensilsCrossed, ShoppingBag, Truck } from "lucide-react";
+import { OrderType, useTimeSelectionStore } from "@/app/store/useTimeSelectionStore";
 
 const orderTypes = [
   {
@@ -33,9 +34,7 @@ const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
-    },
+    transition: { staggerChildren: 0.2 },
   },
 };
 
@@ -47,8 +46,11 @@ const itemVariants = {
 export default function OrderTypePage() {
   const router = useRouter();
 
-  const handleOrderTypeSelect = (type: string) => {
-    router.push(`/order/${type}`);
+  const handleOrderTypeSelect = (type: typeof orderTypes[number]) => {
+    // Save the order type in Zustand using its id (a string)
+    useTimeSelectionStore.getState().setOrderType(type.id as OrderType);
+    // Navigate using the order type id
+    router.push(`/order/${type.id}`);
   };
 
   return (
@@ -63,8 +65,12 @@ export default function OrderTypePage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-16"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">How would you like to order?</h1>
-          <p className="text-lg text-neutral-400">Choose your preferred way to enjoy our delicious meals</p>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            How would you like to order?
+          </h1>
+          <p className="text-lg text-neutral-400">
+            Choose your preferred way to enjoy our delicious meals
+          </p>
         </motion.div>
 
         <motion.div
@@ -79,7 +85,7 @@ export default function OrderTypePage() {
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => handleOrderTypeSelect(type.id)}
+              onClick={() => handleOrderTypeSelect(type)}
               className="relative group cursor-pointer"
             >
               <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl blur-xl" />
@@ -91,7 +97,6 @@ export default function OrderTypePage() {
                   </div>
                   <h3 className="text-2xl font-semibold mb-2">{type.title}</h3>
                   <p className="text-neutral-400">{type.description}</p>
-                  
                   <div className="mt-6 flex items-center text-sm text-neutral-400 group-hover:text-white transition-colors duration-300">
                     <span>Get started</span>
                     <svg

@@ -1,4 +1,4 @@
-export type OrderType = 'dine_in' | 'takeout' | 'delivery';
+export type OrderType = 'dine-in' | 'pick-up' | 'delivery';
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 export type VehicleType = 'motorbike' | 'bicycle';
 export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled';
