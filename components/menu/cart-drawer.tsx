@@ -8,24 +8,50 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { useCart } from '@/hooks/useCart';
 import { MenuItem } from '@/app/api/types';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
 
-export function CartDrawer({ isAuthenticated = false }) {
+export function CartDrawer() {
   const { cart, total, addItem, removeItem } = useCart();
+  const router = useRouter();
+  const supabase = createClientComponentClient();
   
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [mounted, setMounted] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Check authentication status when component mounts
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+    
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
-  const handleCheckout = () => {
-    if (!isAuthenticated) {
+  const handleCheckout = async () => {
+    // Re-check auth status to be sure it's current
+    const { data } = await supabase.auth.getSession();
+    const isUserAuthenticated = !!data.session;
+    
+    if (!isUserAuthenticated) {
       setShowAuthModal(true);
     } else {
-      // TODO: Proceed with checkout
-      console.log("Proceeding to checkout with items:", cart);
+      // Proceed with checkout - redirect to checkout page
+      router.push('/checkout');
     }
   };
 
