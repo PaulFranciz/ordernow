@@ -167,8 +167,8 @@ export default function CheckoutPage() {
     switch (orderType) {
       case 'delivery':
         return 'Delivery Location';
-      case 'pickup':
-        return 'Pickup Time';
+      case 'pick-up':
+        return 'Pick-up Time';
       case 'dine-in':
         return 'Reservation';
       default:
@@ -181,7 +181,7 @@ export default function CheckoutPage() {
     switch (orderType) {
       case 'delivery':
         return <MapPin className="w-4 h-4" />;
-      case 'pickup':
+      case 'pick-up':
         return <Package className="w-4 h-4" />;
       case 'dine-in':
         return <Utensils className="w-4 h-4" />;
@@ -202,7 +202,7 @@ export default function CheckoutPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Checkout</h1>
           <div className="text-gray-500 mb-8 flex items-center">
             {orderType === 'delivery' && <span className="flex items-center"><MapPin className="w-4 h-4 mr-1" /> Delivery Order</span>}
-            {orderType === 'pickup' && <span className="flex items-center"><Package className="w-4 h-4 mr-1" /> Pickup Order</span>}
+            {orderType === 'pick-up' && <span className="flex items-center"><Package className="w-4 h-4 mr-1" /> Pickup Order</span>}
             {orderType === 'dine-in' && <span className="flex items-center"><Utensils className="w-4 h-4 mr-1" /> Dine-in Reservation</span>}
           </div>
           
@@ -284,10 +284,10 @@ export default function CheckoutPage() {
                   )}
                   
                   {/* Pickup/Dine-in Options */}
-                  {(orderType === 'pickup' || orderType === 'dine-in') && (
+                  {(orderType === 'pick-up' || orderType === 'dine-in') && (
                     <div className="space-y-6">
                       <h2 className="text-lg font-medium mb-4">
-                        {orderType === 'pickup' ? 'Select Pickup Time' : 'Make a Reservation'}
+                        {orderType === 'pick-up' ? 'Select Pickup Time' : 'Make a Reservation'}
                       </h2>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -317,7 +317,6 @@ export default function CheckoutPage() {
                             <TimePicker
                               onChange={handleTimeChange}
                               value={selectedTime}
-                              hourRange={{ start: 10, end: 22 }}
                               className="mb-4"
                             />
                             
@@ -375,10 +374,10 @@ export default function CheckoutPage() {
                   <h2 className="text-lg font-medium mb-4">Order Summary</h2>
                   
                   {/* Show reservation details for pickup/dine-in */}
-                  {(orderType === 'pickup' || orderType === 'dine-in') && reservationDetails.date && reservationDetails.time && (
+                  {(orderType === 'pick-up' || orderType === 'dine-in') && reservationDetails.date && reservationDetails.time && (
                     <div className="bg-blue-50 p-4 rounded-lg mb-6">
                       <h3 className="font-medium text-blue-800 mb-2">
-                        {orderType === 'pickup' ? 'Pickup Details' : 'Reservation Details'}
+                        {orderType === 'pick-up' ? 'Pickup Details' : 'Reservation Details'}
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex items-center">
@@ -426,7 +425,7 @@ export default function CheckoutPage() {
                       onClick={() => setStep(1)}
                       className="w-full mt-3 py-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
                     >
-                      ← Back to {orderType === 'delivery' ? 'delivery options' : orderType === 'pickup' ? 'pickup options' : 'reservation details'}
+                      ← Back to {orderType === 'delivery' ? 'delivery options' : orderType === 'pick-up' ? 'pick-up options' : 'reservation details'}
                     </button>
                   </div>
                 </motion.div>
