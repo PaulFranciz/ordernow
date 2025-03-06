@@ -16,6 +16,12 @@ const nextConfig = {
     },
   },
   output: 'standalone',
+  // Ensure clean builds
+  cleanDistDir: true,
+  // Disable caching during builds
+  generateBuildId: async () => {
+    return `build-${Date.now()}`
+  }
 };
 
 module.exports = nextConfig;
