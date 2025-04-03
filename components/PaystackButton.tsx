@@ -170,10 +170,14 @@ export function PaystackButton({
       }
 
       const { order } = await response.json();
-      if (!order || !order.id) throw new Error('Failed to create order or order ID missing');
+      // Check if the returned order ID (which is the value of 'order' now) is a valid string
+      if (!order || typeof order !== 'string') {
+          console.error('API response missing valid order ID:', order);
+          throw new Error('Failed to get valid order ID after creation');
+      }
       
       // Capture the order ID reliably before setting up Paystack
-      const confirmedOrderId = order.id;
+      const confirmedOrderId = order; // The 'order' variable IS the ID
       console.log('Order created successfully. Captured ID:', confirmedOrderId);
       
       // Make sure NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY is defined
