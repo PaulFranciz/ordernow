@@ -123,11 +123,14 @@ export function PaystackButton({
       }
 
       // 3. Check if cart is empty
+      console.log('[PaystackButton] Checking cart items:', { cartItems: items, length: items?.length });
       if (!items || items.length === 0) {
+        console.log('[PaystackButton] Cart is empty, stopping payment process.');
         toast.error('Your cart is empty');
         setIsLoading(false);
         return;
       }
+      console.log('[PaystackButton] Cart check passed. Proceeding...');
       // --- End of Refined Validation Logic ---
 
       // Add right before each validation check
