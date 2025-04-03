@@ -27,18 +27,28 @@ export async function POST(request: Request) {
     }
 
     // Create order
-    const { data: order, error: orderError } = await supabase.rpc('create_order', {
+    const rpcParams = {
       p_user_id: session.user.id,
       p_branch_id: branch_id,
       p_order_type: order_type,
       p_delivery_zone_id: delivery_zone_id,
       p_special_instructions: special_instructions,
       p_items: items
-    });
+    };
+    
+    console.log('Request body:', JSON.stringify(body, null, 2));
+    console.log('RPC params:', JSON.stringify(rpcParams, null, 2));
+
+    const { data: order, error: orderError } = await supabase.rpc('create_order', rpcParams);
 
     if (orderError) {
-      console.error('Order creation error:', orderError);
-      return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+      console.error('Order creation error details:', {
+        message: orderError.message,
+        details: orderError.details,
+        hint: orderError.hint,
+        code: orderError.code
+      });
+      return NextResponse.json({ error: 'Failed to create order', details: orderError }, { status: 500 });
     }
 
     return NextResponse.json({ order });

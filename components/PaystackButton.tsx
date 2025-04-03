@@ -140,6 +140,13 @@ export function PaystackButton({
       });
 
       console.log('Validation passed. Creating order...');
+      // Transform cart items to match CreateOrderRequest structure
+      const transformedItems = items.map(item => ({
+        menu_item_id: item.id,
+        quantity: item.quantity,
+        notes: '' // Optional: Add notes if needed
+      }));
+
       // Create order with auth header
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -151,7 +158,7 @@ export function PaystackButton({
           branch_id: branchId,
           order_type: orderType,
           ...(orderType === 'delivery' && deliveryZone && { delivery_zone_id: deliveryZone.id }),
-          items,
+          items: transformedItems,
           special_instructions: ''
         })
       });
