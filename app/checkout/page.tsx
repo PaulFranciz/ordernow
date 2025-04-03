@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useCart } from '@/hooks/useCart';
+import { useCart, CartStore } from '@/lib/hooks/use-cart';
 import { PaystackButton } from '@/components/PaystackButton';
 import { DeliveryZoneSelector } from '@/components/checkout/DeliveryZoneSelector';
 import { CartSummary } from '@/components/checkout/CartSummary';
@@ -16,6 +16,7 @@ import { OrderType as PaystackOrderType } from '@/types/order';
 import { Calendar } from "@/components/ui/calendar";
 import TimePicker from "@/components/ui/time-picker";
 import { CalendarIcon, Clock, MapPin, Utensils, Package } from 'lucide-react';
+import { MenuItem } from '@/app/api/types';
 
 // Helper function to convert between order type formats
 const mapOrderType = (type: StoreOrderType | null): PaystackOrderType | undefined => {
@@ -25,7 +26,7 @@ const mapOrderType = (type: StoreOrderType | null): PaystackOrderType | undefine
 };
 
 export default function CheckoutPage() {
-  const { total } = useCart();
+  const cart: CartStore = useCart();
   const timeSelectionStore = useTimeSelectionStore();
   const orderType = timeSelectionStore.orderType;
   const router = useRouter();
@@ -48,6 +49,9 @@ export default function CheckoutPage() {
     notes: ''
   });
   const [isAuthCheckLoading, setIsAuthCheckLoading] = useState(true); // Separate loading state
+
+  // Calculate total using the method from the imported type
+  const cartTotal = cart.getTotal();
 
   // Check if the order type is set
   useEffect(() => {
@@ -447,7 +451,7 @@ export default function CheckoutPage() {
                   
                   <div className="mt-6">
                     <PaystackButton 
-                      amount={total + (selectedZone?.daytime_fee || 0)} 
+                      amount={cartTotal + (selectedZone?.daytime_fee || 0)}
                       email={user?.email || ''}
                       deliveryZone={selectedZone}
                       orderType={orderType as any}

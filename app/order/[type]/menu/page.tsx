@@ -15,7 +15,7 @@ import { CartDrawer } from "@/components/menu/cart-drawer";
 import { Breadcrumb } from "@/components/menu/breadcrumb";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import axios from "axios";
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/lib/hooks/use-cart';
 
 interface MenuResponse {
   menuItems: MenuItem[];
@@ -135,8 +135,8 @@ export default function MenuPage() {
   const [isGridView, setIsGridView] = useState(true);
   const [allItems, setAllItems] = useState<MenuItem[]>([]);
   
-  // Use the cart from Zustand store
-  const { cart, cartMap } = useCart();
+  // Use the cart from the correct hook
+  const { items: cartItems, addItem, getTotal } = useCart(); // Destructure needed state/actions
 
   // Fetch categories
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery<Category[], Error>({    
@@ -242,8 +242,8 @@ export default function MenuPage() {
     setCurrentPage(page);
   };
 
-  // Check if cart has items
-  const hasItems = cart.length > 0;
+  // Check if cart has items based on the items array
+  const hasItems = cartItems.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">

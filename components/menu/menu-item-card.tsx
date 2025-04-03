@@ -1,45 +1,34 @@
 import React from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCart } from '@/hooks/useCart';
+import { useCart, CartItem } from '@/lib/hooks/use-cart';
 import { MenuItem as ApiMenuItem } from '@/app/api/types';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
-// Use a local interface that matches what we're actually using
-interface MenuItem {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  image: string; // Add this to match the API type
-  is_available: boolean;
-  category_id: string;
-}
+// Remove local MenuItem interface if it duplicates ApiMenuItem or causes conflict
+// interface MenuItem { ... }
 
 interface MenuItemCardProps {
-  item: MenuItem;
+  item: ApiMenuItem; // Use the imported API type
   isGridView?: boolean;
   className?: string;
 }
 
 export function MenuItemCard({ item, isGridView = true, className = '' }: MenuItemCardProps) {
-  const { cart, addItem, removeItem } = useCart();
+  // Destructure correct state/actions
+  const { items, addItem, decrementItem } = useCart(); 
   
-  // Find the item in the cart to get its quantity
-  const cartItem = cart.find(cartItem => cartItem.id === item.id);
+  // Find the item in the correct items array
+  const cartItem = items.find((cartItem: CartItem) => cartItem.id === item.id); // Use CartItem type
   const quantity = cartItem ? cartItem.quantity : 0;
 
   const handleAddToCart = () => {
-    // Ensure the item has all required properties before adding to cart
-    const menuItem: ApiMenuItem = {
-      ...item,
-      image: item.image || item.image_url || '', // Ensure image is set
-    };
-    addItem(menuItem);
+    // No need for extra conversion if item prop is already ApiMenuItem
+    addItem(item);
   };
 
   const handleRemoveFromCart = () => {
-    removeItem(item.id);
+    decrementItem(item.id); // Use decrementItem
   };
 
   if (isGridView) {

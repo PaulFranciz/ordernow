@@ -6,13 +6,13 @@ import { ShoppingCart, Plus, Minus, X } from "lucide-react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { AuthModal } from '@/components/auth/auth-modal';
-import { useCart } from '@/hooks/useCart';
+import { useCart, CartStore, CartItem } from '@/lib/hooks/use-cart';
 import { MenuItem } from '@/app/api/types';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
 export function CartDrawer() {
-  const { cart, total, addItem, removeItem } = useCart();
+  const { items: cartItems, getTotal, addItem, removeItem, decrementItem } = useCart();
   const router = useRouter();
   const supabase = createClientComponentClient();
   
@@ -55,21 +55,14 @@ export function CartDrawer() {
     }
   };
 
-  // Handle adding item to cart with proper type conversion
-  const handleAddItem = (item: any) => {
-    // Convert CartItem to MenuItem to satisfy the addItem function
-    const menuItem: MenuItem = {
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      description: item.description,
-      image_url: item.image_url,
-      image: item.image || item.image_url || '',
-      category_id: item.category_id,
-      is_available: item.is_available
-    };
-    
-    addItem(menuItem);
+  // Handle adding item to cart - Use addItem directly from the store
+  const handleAddItem = (item: MenuItem) => {
+    addItem(item);
+  };
+
+  // Handle decrementing/removing item
+  const handleRemoveItem = (itemId: string) => {
+    decrementItem(itemId); // Use decrementItem which handles removal at quantity 1
   };
 
   if (!mounted) {
@@ -77,7 +70,9 @@ export function CartDrawer() {
   }
 
   // Calculate total items
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItems = cartItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
+  // Calculate total amount
+  const totalAmount = getTotal();
 
   return (
     <>
@@ -97,7 +92,7 @@ export function CartDrawer() {
                   {totalItems} items
                 </span>
                 <p className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-[#BF9B30] to-[#DFBD69]">
-                  Total: ₦{total.toLocaleString()}
+                  Total: ₦{totalAmount.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -117,14 +112,14 @@ export function CartDrawer() {
           
           <div className="flex-1 flex flex-col min-h-0 mt-6">
             <ScrollArea className="flex-1 -mx-6 px-6">
-              {cart.length === 0 ? (
+              {cartItems.length === 0 ? (
                 <div className="text-center text-gray-500 py-6">
                   Your cart is empty
                 </div>
               ) : (
                 <div className="space-y-4 pb-4">
                   <AnimatePresence mode="popLayout">
-                    {cart.map((item) => (
+                    {cartItems.map((item: CartItem) => (
                       <motion.div
                         key={item.id}
                         layout
@@ -152,7 +147,7 @@ export function CartDrawer() {
                             variant="outline"
                             size="icon"
                             className="h-7 w-7 md:h-8 md:w-8"
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => handleRemoveItem(item.id)}
                           >
                             {item.quantity === 1 ? <X className="h-3 w-3 md:h-4 md:w-4" /> : <Minus className="h-3 w-3 md:h-4 md:w-4" />}
                           </Button>
@@ -161,7 +156,7 @@ export function CartDrawer() {
                             variant="outline"
                             size="icon"
                             className="h-7 w-7 md:h-8 md:w-8"
-                            onClick={() => handleAddItem(item)}
+                            onClick={() => handleAddItem(item as any)}
                           >
                             <Plus className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
@@ -177,7 +172,7 @@ export function CartDrawer() {
               <div className="flex justify-between items-center mb-4">
                 <span className="text-base font-semibold">Total</span>
                 <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#BF9B30] to-[#DFBD69]">
-                  ₦{total.toLocaleString()}
+                  ₦{totalAmount.toLocaleString()}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3">
