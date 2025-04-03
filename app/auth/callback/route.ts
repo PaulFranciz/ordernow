@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  console.log(`[Auth Callback] Received GET request for URL: ${request.url}`);
   try {
     // Get the URL and extract parameters
     const requestUrl = new URL(request.url);
@@ -129,38 +130,13 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    console.log('Successfully authenticated, redirecting to:', returnTo);
+    console.log('Successfully authenticated, redirecting to verification page with returnTo:', returnTo);
     
-    // Return HTML that will redirect the user using client-side JavaScript with the correct origin
-    return new NextResponse(
-      `<!DOCTYPE html>
-      <html>
-        <head>
-          <title>Authentication Successful</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <script>
-            // Store auth state to local storage
-            localStorage.setItem('authSuccess', 'true');
-            
-            // Get the server address from where this page was served
-            const serverOrigin = window.location.origin;
-            const redirectPath = "${returnTo}";
-            const fullRedirectUrl = serverOrigin + redirectPath;
-            
-            console.log("Successfully authenticated, redirecting to:", fullRedirectUrl);
-            window.location.href = fullRedirectUrl;
-          </script>
-        </head>
-        <body>
-          <p>Authentication successful. Redirecting...</p>
-        </body>
-      </html>`,
-      {
-        headers: {
-          'Content-Type': 'text/html',
-        },
-      }
-    );
+    // Redirect to the verification page, passing returnTo
+    const verifyUrl = new URL('/auth/verify', requestUrl.origin);
+    verifyUrl.searchParams.set('returnTo', returnTo);
+    return NextResponse.redirect(verifyUrl.toString());
+
   } catch (error) {
     console.error('Callback error:', error);
     

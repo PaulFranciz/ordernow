@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { MapPin, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useBranchStore } from "@/app/store/useBranchStore";
+import { useTimeSelectionStore } from "@/app/store/useTimeSelectionStore";
 import { Button } from "@/components/ui/button";
 import { Branch } from '@/app/api/types';
 
@@ -15,6 +16,7 @@ interface BranchSelectorProps {
 export function BranchSelector({ orderType }: BranchSelectorProps) {
   const router = useRouter();
   const { branches, selectedBranchId, isLoading, error, fetchBranches, selectBranch } = useBranchStore();
+  const setTimeSelectionBranchId = useTimeSelectionStore((state) => state.setBranchId);
 
   useEffect(() => {
     fetchBranches();
@@ -77,6 +79,7 @@ export function BranchSelector({ orderType }: BranchSelectorProps) {
 
   const handleContinue = () => {
     if (selectedBranchId) {
+      setTimeSelectionBranchId(selectedBranchId);
       router.push(`/order/${orderType}/menu`);
     }
   };

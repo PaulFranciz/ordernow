@@ -11,10 +11,18 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { toast } from 'react-hot-toast';
 import { DeliveryZone } from '@/types/checkout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useTimeSelectionStore } from '@/app/store/useTimeSelectionStore';
+import { useTimeSelectionStore, OrderType as StoreOrderType } from '@/app/store/useTimeSelectionStore';
+import { OrderType as PaystackOrderType } from '@/types/order';
 import { Calendar } from "@/components/ui/calendar";
 import TimePicker from "@/components/ui/time-picker";
 import { CalendarIcon, Clock, MapPin, Utensils, Package } from 'lucide-react';
+
+// Helper function to convert between order type formats
+const mapOrderType = (type: StoreOrderType | null): PaystackOrderType | undefined => {
+  if (!type) return undefined;
+  if (type === 'pick-up') return 'pickup';
+  return type as PaystackOrderType; // 'delivery' and 'dine-in' are the same in both types
+};
 
 export default function CheckoutPage() {
   const { total } = useCart();
@@ -23,7 +31,6 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [selectedZone, setSelectedZone] = useState<DeliveryZone | null>(null);
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<{ email: string } | null>(null);
   const [vehicleType, setVehicleType] = useState<'motorbike' | 'bicycle'>('motorbike');
   const supabase = createClientComponentClient();
@@ -40,6 +47,7 @@ export default function CheckoutPage() {
     guestCount: 1,
     notes: ''
   });
+  const [isAuthCheckLoading, setIsAuthCheckLoading] = useState(true); // Separate loading state
 
   // Check if the order type is set
   useEffect(() => {
@@ -65,32 +73,55 @@ export default function CheckoutPage() {
     }
   }, [vehicleType, orderType]);
 
+  // Revised Auth Check Logic
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) throw error;
-        
-        if (!session) {
-          localStorage.setItem('authRedirectPath', '/checkout');
-          router.push('/auth/signin');
-          return;
-        }
-        
-        if (session.user.email) {
-          setUser({ email: session.user.email });
-        }
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Auth check error:', error);
-        toast.error('Authentication error. Please try again.');
-        router.push('/auth/signin');
-      }
-    };
+    setIsAuthCheckLoading(true); // Start loading
 
-    checkAuth();
+    // Initial check just to potentially set user faster if already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setUser({ email: session.user.email || '' });
+        // Don't stop loading here, wait for the listener to confirm
+      } else {
+        // If no session initially, middleware should have redirected,
+        // but we still set loading to false later via the listener.
+      }
+    }).catch(error => {
+       console.error('Initial getSession error (client-side):', error);
+       // Don't redirect here, let middleware handle initial auth
+    });
+
+    // Main logic: Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[CheckoutPage] Auth State Change Event:', event);
+      if (session) {
+        setUser({ email: session.user.email || '' });
+        console.log('[CheckoutPage] User session found/updated.');
+      } else {
+        // Only redirect if the user explicitly signs out OR if the session is definitely gone
+        // after the initial page load (middleware should prevent unauthorized access initially)
+        setUser(null);
+        console.log('[CheckoutPage] No session found after auth change. Re-validating...');
+        // Give a brief moment for session context potentially established by server redirect to propagate
+        await new Promise(resolve => setTimeout(resolve, 150)); 
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (!currentSession) {
+            console.log('[CheckoutPage] Confirmed no session, redirecting to signin.');
+            localStorage.setItem('authRedirectPath', '/checkout'); 
+            router.push('/auth/signin');
+        } else {
+             console.log('[CheckoutPage] Session appeared after delay, updating user.');
+             setUser({ email: currentSession.user.email || '' });
+        }
+      }
+      // Consider auth check done once the listener provides a state
+      setIsAuthCheckLoading(false);
+    });
+
+    // Cleanup listener on component unmount
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [router, supabase.auth]);
 
   // Proceed to next step for reservation/pickup types
@@ -120,7 +151,7 @@ export default function CheckoutPage() {
     setStep(2);
   };
 
-  if (isLoading) {
+  if (isAuthCheckLoading) { // Use dedicated loading state
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
@@ -419,6 +450,8 @@ export default function CheckoutPage() {
                       amount={total + (selectedZone?.daytime_fee || 0)} 
                       email={user?.email || ''}
                       deliveryZone={selectedZone}
+                      orderType={orderType as any}
+                      branchId={timeSelectionStore.branchId}
                     />
                     
                     <button 

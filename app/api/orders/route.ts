@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
-import { supabase, calculateDeliveryFee } from '@/lib/supabase/client';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { CreateOrderRequest } from '../types';
 
 export async function POST(request: Request) {
   try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const supabase = createRouteHandlerClient({ cookies });
+    
+    // Get user from session
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    if (authError || !session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -22,9 +26,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Delivery zone is required for delivery orders' }, { status: 400 });
     }
 
-    // Start a transaction
+    // Create order
     const { data: order, error: orderError } = await supabase.rpc('create_order', {
-      p_user_id: user.id,
+      p_user_id: session.user.id,
       p_branch_id: branch_id,
       p_order_type: order_type,
       p_delivery_zone_id: delivery_zone_id,
@@ -46,8 +50,11 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const supabase = createRouteHandlerClient({ cookies });
+    
+    // Get user from session
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    if (authError || !session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -68,7 +75,7 @@ export async function GET(request: Request) {
           menu_item:menu_items(name, description)
         )
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
