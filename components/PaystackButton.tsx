@@ -170,9 +170,11 @@ export function PaystackButton({
       }
 
       const { order } = await response.json();
-      if (!order) throw new Error('Failed to create order');
+      if (!order || !order.id) throw new Error('Failed to create order or order ID missing');
       
-      console.log('Order created successfully:', order.id);
+      // Capture the order ID reliably before setting up Paystack
+      const confirmedOrderId = order.id;
+      console.log('Order created successfully. Captured ID:', confirmedOrderId);
       
       // Make sure NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY is defined
       const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
@@ -208,15 +210,14 @@ export function PaystackButton({
         key: paystackKey,
         email,
         amount: Math.round(amount * 100), // Convert to kobo and ensure it's an integer
-        ref: `ord_${order.id}_${Date.now()}`,
+        ref: `ord_${confirmedOrderId}_${Date.now()}`,
         metadata: {
-          orderId: order.id
+          orderId: confirmedOrderId
         },
         callback: function(response: PaystackSuccessResponse) {
-          console.log('Payment callback received:', response);
-          // The callback might not have access to the outer scope in some cases
-          // so we'll use a more direct approach
-          window.location.href = `/order/confirmation/${order.id}`;
+          console.log('Payment callback received. Redirecting with order ID:', confirmedOrderId);
+          // Use the reliably captured order ID for redirection
+          window.location.href = `/order/confirmation/${confirmedOrderId}`;
         },
         onClose: function() {
           console.log("Payment window closed");
