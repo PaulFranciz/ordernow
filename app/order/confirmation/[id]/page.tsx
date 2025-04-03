@@ -98,8 +98,9 @@ export default function OrderConfirmationPage() {
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    if (!orderId) {
-        setError("Order ID not found in URL.");
+    // Ensure orderId is valid before proceeding
+    if (!orderId || typeof orderId !== 'string' || orderId === 'undefined') {
+        setError("Invalid or missing Order ID in URL.");
         setIsLoading(false);
         return;
     }
