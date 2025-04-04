@@ -17,6 +17,9 @@ import { Calendar } from "@/components/ui/calendar";
 import TimePicker from "@/components/ui/time-picker";
 import { CalendarIcon, Clock, MapPin, Utensils, Package } from 'lucide-react';
 import { MenuItem } from '@/app/api/types';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 // Helper function to convert between order type formats
 const mapOrderType = (type: StoreOrderType | null): PaystackOrderType | undefined => {
@@ -32,7 +35,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [selectedZone, setSelectedZone] = useState<DeliveryZone | null>(null);
   const [step, setStep] = useState(1);
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [vehicleType, setVehicleType] = useState<'motorbike' | 'bicycle'>('motorbike');
   const supabase = createClientComponentClient();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -49,9 +52,13 @@ export default function CheckoutPage() {
     notes: ''
   });
   const [isAuthCheckLoading, setIsAuthCheckLoading] = useState(true); // Separate loading state
+  const [deliveryAddress, setDeliveryAddress] = useState<string>('');
+  const [specialInstructions, setSpecialInstructions] = useState<string>('');
 
   // Calculate total using the method from the imported type
   const cartTotal = cart.getTotal();
+  const deliveryFee = selectedZone?.daytime_fee || 0;
+  const totalAmount = cartTotal + deliveryFee;
 
   // Check if the order type is set
   useEffect(() => {
@@ -84,7 +91,7 @@ export default function CheckoutPage() {
     // Initial check just to potentially set user faster if already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        setUser({ email: session.user.email || '' });
+        setUser(session.user);
         // Don't stop loading here, wait for the listener to confirm
       } else {
         // If no session initially, middleware should have redirected,
@@ -99,7 +106,7 @@ export default function CheckoutPage() {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('[CheckoutPage] Auth State Change Event:', event);
       if (session) {
-        setUser({ email: session.user.email || '' });
+        setUser(session.user);
         console.log('[CheckoutPage] User session found/updated.');
       } else {
         // Only redirect if the user explicitly signs out OR if the session is definitely gone
@@ -115,7 +122,7 @@ export default function CheckoutPage() {
             router.push('/auth/signin');
         } else {
              console.log('[CheckoutPage] Session appeared after delay, updating user.');
-             setUser({ email: currentSession.user.email || '' });
+             setUser(currentSession.user);
         }
       }
       // Consider auth check done once the listener provides a state
@@ -451,11 +458,13 @@ export default function CheckoutPage() {
                   
                   <div className="mt-6">
                     <PaystackButton 
-                      amount={cartTotal + (selectedZone?.daytime_fee || 0)}
+                      amount={totalAmount}
                       email={user?.email || ''}
                       deliveryZone={selectedZone}
-                      orderType={orderType as any}
+                      orderType={orderType ? mapOrderType(orderType) : undefined}
                       branchId={timeSelectionStore.branchId}
+                      deliveryAddress={orderType === 'delivery' ? deliveryAddress : undefined}
+                      specialInstructions={specialInstructions}
                     />
                     
                     <button 

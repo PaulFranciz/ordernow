@@ -98,6 +98,7 @@ export interface CreateOrderRequest {
     notes?: string;
   }[];
   special_instructions?: string;
+  delivery_address?: string;
 }
 
 export interface CreateReservationRequest {

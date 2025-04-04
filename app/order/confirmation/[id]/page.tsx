@@ -31,6 +31,7 @@ interface Order {
   total_amount: number;
   delivery_fee?: number | null;
   special_instructions?: string | null;
+  delivery_address?: string | null;
   created_at: string;
   branch: BranchInfo | null; // Processed branch info
   items: OrderItem[]; // Array of processed items
@@ -60,6 +61,7 @@ interface RawOrderData {
   total_amount: number;
   delivery_fee?: number | null;
   special_instructions?: string | null;
+  delivery_address?: string | null;
   created_at: string;
   branch: RawBranchRelation;
   items: RawOrderItemData[];
@@ -114,7 +116,7 @@ export default function OrderConfirmationPage() {
           .from('orders')
           .select(`
             id, status, order_type, total_amount, delivery_fee,
-            special_instructions, created_at,
+            special_instructions, created_at, delivery_address,
             branch:branches(name, address),
             items:order_items(
               id, quantity, unit_price, notes,
@@ -169,6 +171,7 @@ export default function OrderConfirmationPage() {
                 total_amount: queryResult.total_amount,
                 delivery_fee: queryResult.delivery_fee,
                 special_instructions: queryResult.special_instructions,
+                delivery_address: queryResult.delivery_address,
                 created_at: queryResult.created_at,
                 branch: processedBranch,
                 items: processedItems,
@@ -251,14 +254,23 @@ export default function OrderConfirmationPage() {
                 </div>
             </div>
 
-            {/* Branch Details */}
+            {/* Delivery/Pickup Details Section */}
             <div className="border-b pb-4">
-                <h3 className="text-md font-semibold text-gray-800 mb-2">Branch Details</h3>
+                <h3 className="text-md font-semibold text-gray-800 mb-2">
+                  {order.order_type === 'delivery' ? 'Delivery Details' : 'Branch Details'}
+                </h3>
+                {order.order_type === 'delivery' && order.delivery_address && (
+                    <div className="mb-2">
+                        <p className="text-sm font-medium text-gray-900">Delivery Address:</p>
+                        <p className="text-sm text-gray-600 whitespace-pre-wrap">{order.delivery_address}</p>
+                    </div>
+                )}
                 {order.branch ? (
-                    <>
+                    <div>
+                        <p className="text-sm font-medium text-gray-900">Branch:</p>
                         <p className="text-sm text-gray-700">{order.branch.name}</p>
                         <p className="text-sm text-gray-600">{order.branch.address}</p>
-                    </>
+                    </div>
                 ) : (
                     <p className="text-sm text-gray-500 italic">Branch details not available.</p>
                 )}
@@ -284,9 +296,9 @@ export default function OrderConfirmationPage() {
 
             {/* Special Instructions */}
             {order.special_instructions && (
-                <div className="border-t pt-4">
+                <div className="pt-4 border-t mt-4">
                     <h3 className="text-md font-semibold text-gray-800 mb-2">Special Instructions</h3>
-                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">{order.special_instructions}</p>
+                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded whitespace-pre-wrap">{order.special_instructions}</p>
                 </div>
             )}
 
