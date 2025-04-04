@@ -15,6 +15,8 @@ interface PaystackButtonProps {
   deliveryZone: DeliveryZone | null;
   orderType?: OrderType;
   branchId: string | null;
+  deliveryAddress?: string;
+  specialInstructions?: string;
 }
 
 interface PaystackSuccessResponse {
@@ -49,6 +51,8 @@ export function PaystackButton({
   deliveryZone,
   orderType,
   branchId,
+  deliveryAddress,
+  specialInstructions,
 }: PaystackButtonProps) {
   const router = useRouter();
   const { items } = useCart();
@@ -147,6 +151,20 @@ export function PaystackButton({
         notes: '' // Optional: Add notes if needed
       }));
 
+      // Create order request body
+      const orderRequestBody = {
+        branch_id: branchId,
+        order_type: orderType,
+        ...(orderType === 'delivery' && deliveryZone && { delivery_zone_id: deliveryZone.id }),
+        items: transformedItems,
+        special_instructions: specialInstructions || '',
+        ...(orderType === 'delivery' && { delivery_address: deliveryAddress || '' }) // Include address only for delivery
+      };
+      
+      // Add this log to verify the final body before sending
+      console.log('[PaystackButton] Final request body being sent:', JSON.stringify(orderRequestBody, null, 2)); 
+      console.log('Order request payload:', JSON.stringify(orderRequestBody, null, 2)); // Duplicate log, remove if redundant
+
       // Create order with auth header
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -154,13 +172,7 @@ export function PaystackButton({
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          branch_id: branchId,
-          order_type: orderType,
-          ...(orderType === 'delivery' && deliveryZone && { delivery_zone_id: deliveryZone.id }),
-          items: transformedItems,
-          special_instructions: ''
-        })
+        body: JSON.stringify(orderRequestBody)
       });
 
       if (!response.ok) {
